@@ -17,11 +17,29 @@ namespace PathfindingProject
 
         public World()
         {
-            Grid = new HierarchicalGrid(new Vector2(0, 0), 128, 4, 5, 5);
+            Grid = new HierarchicalGrid(new Vector2(0, 0), 128, 4, 11, 6);
             Grid.ShowGrid = true;
 
             Width = Grid.Width;
             Height = Grid.Height;
+        }
+
+        public void HandleInput()
+        {
+
+            if (Input.LeftMouseDown())
+            {
+                Cell cell = Grid.InnerCellAt(Camera.VecToWorld(Input.MousePos));
+                cell.Passable = false;
+                cell.Color = Color.Black;
+            }
+
+            if (Input.RightMouseDown())
+            {
+                Cell cell = Grid.InnerCellAt(Camera.VecToWorld(Input.MousePos));
+                cell.Passable = true;
+                cell.Color = Color.ForestGreen;
+            }
         }
 
         public void Update()

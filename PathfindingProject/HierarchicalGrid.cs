@@ -89,6 +89,19 @@ namespace PathfindingProject
             }
         }
 
+        public OuterGridCell OuterCellAt(Vector2 pos)
+        {
+            int col = (int)Math.Floor((pos.X - Pos.X) / _outerCellSize);
+            int row = (int)Math.Floor((pos.Y - Pos.Y) / _outerCellSize);
+
+            return this[col, row];
+        }
+
+        public Cell InnerCellAt(Vector2 pos)
+        {
+            return OuterCellAt(pos).CellAt(pos);
+        }
+
         public void Render(SpriteBatch spriteBatch)
         {
             for (int col = 0; col < Cols; col++)

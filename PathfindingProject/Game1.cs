@@ -22,6 +22,9 @@ namespace PathfindingProject
             graphics.PreferredBackBufferWidth = 1366;
             graphics.PreferredBackBufferHeight = 768;
 
+            Input.SetMaxMouseX(graphics.PreferredBackBufferWidth);
+            Input.SetMaxMouseY(graphics.PreferredBackBufferHeight);
+
 
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
@@ -75,6 +78,7 @@ namespace PathfindingProject
                 Exit();
 
             Input.UpdateStates();
+            world.HandleInput();
             world.Update();
 
             base.Update(gameTime);

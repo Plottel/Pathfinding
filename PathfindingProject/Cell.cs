@@ -86,7 +86,7 @@ namespace PathfindingProject
         /// <param name="spriteBatch">The SpriteBatch to render to.</param>
         public void Render(SpriteBatch spriteBatch)
         {
-            //spriteBatch.FillRectangle(RenderRect, Color);
+            spriteBatch.FillRectangle(RenderRect, Color);
         }
     }
 }
