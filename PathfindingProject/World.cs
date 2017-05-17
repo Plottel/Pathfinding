@@ -13,11 +13,11 @@ namespace PathfindingProject
         public static int Width;
         public static int Height;
 
-        public Grid Grid;
+        public HierarchicalGrid Grid;
 
         public World()
         {
-            Grid = new Grid(new Vector2(0, 0), 20, 20, 32);
+            Grid = new HierarchicalGrid(new Vector2(0, 0), 128, 4, 5, 5);
             Grid.ShowGrid = true;
 
             Width = Grid.Width;

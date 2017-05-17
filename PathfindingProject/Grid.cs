@@ -136,7 +136,7 @@ namespace PathfindingProject
 
             AddColumns(cols);
             AddRows(rows);
-            ShowGrid = false;
+            ShowGrid = true;
 
             SetupCellNeighbours();
         }

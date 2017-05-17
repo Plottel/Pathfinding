@@ -46,7 +46,9 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Grid.cs" />
+    <Compile Include="HierarchicalGrid.cs" />
     <Compile Include="Input.cs" />
+    <Compile Include="OuterGridCell.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils.cs" />

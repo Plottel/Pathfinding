@@ -17,6 +17,12 @@ namespace PathfindingProject
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
+            Camera.WIDTH = 1366;
+            Camera.HEIGHT = 768;
+            graphics.PreferredBackBufferWidth = 1366;
+            graphics.PreferredBackBufferHeight = 768;
+
+
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
@@ -31,6 +37,8 @@ namespace PathfindingProject
         {
             // TODO: Add your initialization logic here
             world = new World();
+
+
 
             base.Initialize();
         }

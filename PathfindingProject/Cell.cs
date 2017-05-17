@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 
 namespace PathfindingProject
-{
+{   
     public class Cell
     {
         private int _size;
@@ -28,27 +28,12 @@ namespace PathfindingProject
         /// </summary>
         public Color Color { get; set; }
 
-        // TODO: This will need to be taken out of the data structure to allow facade to operate properly.
-        // For path planning, each team will have a different view of what is passable.
-        #region     /------ Pathfinding Details ------\
         public List<Cell> Neighbours;
-
 
         /// <summary>
         /// Whether or not the cell can be walked on.
         /// </summary>
         public bool Passable { get; set; }
-
-        /// <summary>
-        /// The parent of the cell in graph traversal.
-        /// </summary>
-        public Cell Parent;
-
-        /// <summary>
-        /// The score associated with this cell in the path being calculated.
-        /// </summary>
-        public float Score;
-        #endregion  /------ Pathfinding Details ------\
 
         /// <summary>
         /// The world coordinate rectangle used for collisions.
