@@ -24,7 +24,7 @@ namespace PathfindingProject
         /// Outer list represents columns.
         /// Inner list represents rows.
         /// </summary>
-        private List<List<Cell>> _cells = new List<List<Cell>>();
+        protected List<List<Cell>> _cells = new List<List<Cell>>();
 
         /// <summary>
         /// The number of columns in the grid.

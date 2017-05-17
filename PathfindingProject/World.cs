@@ -32,6 +32,7 @@ namespace PathfindingProject
                 Cell cell = Grid.InnerCellAt(Camera.VecToWorld(Input.MousePos));
                 cell.Passable = false;
                 cell.Color = Color.Black;
+                Grid.CalculateWholeGridEdgeConnections();
             }
 
             if (Input.RightMouseDown())
@@ -39,6 +40,7 @@ namespace PathfindingProject
                 Cell cell = Grid.InnerCellAt(Camera.VecToWorld(Input.MousePos));
                 cell.Passable = true;
                 cell.Color = Color.ForestGreen;
+                Grid.CalculateWholeGridEdgeConnections();
             }
         }
 
