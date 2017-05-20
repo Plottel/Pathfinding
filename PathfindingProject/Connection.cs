@@ -23,6 +23,11 @@ namespace PathfindingProject
         /// </summary>
         public HashSet<Connection> Connections = new HashSet<Connection>();
 
+        public Connection Matching
+        {
+            get { return OuterTo.GetMatchingConnection(this); }
+        }
+
         public Connection(Cell innerFrom, Cell innerTo, OuterGridCell outerFrom, OuterGridCell outerTo)
         {
             InnerFrom = innerFrom;

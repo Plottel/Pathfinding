@@ -176,77 +176,135 @@ namespace PathfindingProject
             }
         }
 
-        public struct ConnectionMap
-        {
-            public OuterGridCell outer;
-            public List<Connection> connections;
-
-            public ConnectionMap(OuterGridCell o)
-            {
-                outer = o;
-                connections = o.Connections;
-            }
-        }
-
         public void GetPathFromTo(Connection getPathFromConnection, Connection getPathToConnection)
-        { 
-            var open = new Stack<ConnectionMap>();
-            var closed = new Dictionary<OuterGridCell, List<Connection>();
-            Connection current = null;
-
+        {
+            var open = new List<Connection>();
+            var closed = new List<Connection>();
+            Connection current = getPathFromConnection.Matching;
+            var source = current;
             var parents = new Dictionary<Connection, Connection>();
             var scores = new Dictionary<Connection, float>();
 
-            open.Push(new ConnectionMap(getPathFromConnection.OuterFrom));
-            current = open.Peek().connections[0];
+            open.Add(current);
 
-            closed.Add(open.Peek().outer, new List<Connection>());
-
-            parents.Add(current, null);
+            parents.Add(getPathFromConnection, null);
+            parents.Add(current, getPathFromConnection);
             scores.Add(current, 0);
+            scores.Add(getPathFromConnection, 0);
 
             bool searchComplete = false;
 
+            bool debug = true;
+
             while (!searchComplete)
             {
-                var curOGC = open.Peek().outer;
+                if (debug)
+                {
+                    #region Calculate Path Visual
+                    Input.UpdateStates();
+                    Game1.Instance.GraphicsDevice.Clear(Color.CornflowerBlue);
+
+                    Game1.Instance.spriteBatch.Begin();
+                    Game1.Instance.world.Render(Game1.Instance.spriteBatch);
+
+                    // Render closed list pale blue
+                    foreach (Connection c in closed)
+                    {
+                        Game1.Instance.spriteBatch.FillRectangle(c.InnerFrom.RenderRect, Color.LightSteelBlue);
+                        Game1.Instance.spriteBatch.FillRectangle(c.InnerTo.RenderRect, Color.LightSteelBlue);
+                    }
+
+                    // Render open list cream
+                    foreach (Connection c in open)
+                    {
+                        Game1.Instance.spriteBatch.FillRectangle(c.InnerFrom.RenderRect, Color.BlanchedAlmond);
+                        Game1.Instance.spriteBatch.FillRectangle(c.InnerTo.RenderRect, Color.BlanchedAlmond);
+                    }
+
+                    // Render source red
+                    Game1.Instance.spriteBatch.FillRectangle(source.InnerFrom.RenderRect, Color.LightSteelBlue);
+                    Game1.Instance.spriteBatch.FillRectangle(source.InnerTo.RenderRect, Color.LightSteelBlue);
+
+                    // Render current purple
+                    Game1.Instance.spriteBatch.FillRectangle(current.InnerFrom.RenderRect, Color.LightSteelBlue);
+                    Game1.Instance.spriteBatch.FillRectangle(current.InnerTo.RenderRect, Color.LightSteelBlue);
+
+                    // Render target green
+                    Game1.Instance.spriteBatch.FillRectangle(getPathToConnection.InnerFrom.RenderRect, Color.YellowGreen);
+                    Game1.Instance.spriteBatch.FillRectangle(getPathToConnection.InnerTo.RenderRect, Color.YellowGreen);
+
+                    // Render path to current orange.
+                    Connection curRender = current;
+
+                    while (parents[curRender] != null)
+                    {
+                        Game1.Instance.spriteBatch.DrawLine(curRender.InnerTo.RenderMid, parents[curRender].InnerFrom.RenderMid, Color.Orange, 6);
+                        curRender = parents[curRender];
+                    }
+
+                    // Render scores
+                    foreach (Connection c in open)
+                        Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, Math.Floor(scores[c]).ToString(), c.InnerFrom.RenderMid, Color.Black);
+
+                    Game1.Instance.spriteBatch.End();
+                    Game1.Instance.GraphicsDevice.Present();
+
+                    //System.Threading.Thread.Sleep(75);
+
+
+                    #endregion Calculate Path Visual
+                }
 
                 foreach (Connection connection in current.Connections)
                 {
-                    if (!closed[curOGC].Contains(connection))
+                    if (connection.InnerFrom == getPathToConnection.InnerFrom ||
+                        connection.InnerTo == getPathToConnection.InnerFrom ||
+                        connection.InnerFrom == getPathToConnection.InnerTo ||
+                        connection.InnerTo == getPathToConnection.InnerTo)
                     {
-                        parents.Add(connection, current);
-                        // Score = Euclidian between connections + Euclidian from new to Target
-                        scores.Add(connection, scores[current] +
-                            Vector2.Distance(connection.InnerTo.Mid, getPathToConnection.InnerTo.Mid));
-
-                        closed[curOGC].Add(connection);
-                    }                    
-                }
-
-                Connection lowestConnection = null;
-                float lowestScore = float.MaxValue;
-
-                foreach (Connection c in open.Peek().connections)
-                {
-                    float score = scores[c];
-                    if (score < lowestScore)
-                    {
-                        lowestConnection = c;
-                        lowestScore = score;
+                        return;
                     }
-                }
 
-                current = lowestConnection;
-                open.Peek().connections.Remove(current);
+                    if (!closed.Contains(connection) && !open.Contains(connection))
+                    {
+                        parents.Add(connection, current); // Parent internal.
+                        parents.Add(connection.Matching, connection); // Parent external (matching)
 
-                // If current OGC has no unexplored connections left - pop from Open and add to Closed
-                if (open.Peek().connections.Count == 0)
-                    closed.Add(open.Pop().outer);
+                        //float score = scores[current];
+                        float score = 0;
+                        Connection c = current;
 
+                        while (parents[c] != null)
+                        {
+                            score += scores[c];
+                            c = parents[c];
+                        }
 
+                        score /= 20;
+
+                        score += Vector2.Distance(connection.InnerTo.Mid, getPathToConnection.InnerTo.Mid);
+
+                        // Score = Euclidian between connections + Euclidian from new to Target
+                        //scores.Add(connection, scores[current] +
+                        //Vector2.Distance(connection.InnerTo.Mid, getPathToConnection.InnerTo.Mid));
+                        ////scores.Add(connection, Vector2.Distance(connection.InnerTo.Mid, getPathToConnection.InnerTo.Mid));
+                        scores.Add(connection, score);
+                        scores.Add(connection.Matching, scores[connection]);
+
+                        open.Add(connection); // Add internal
+                        open.Add(connection.Matching);
+                    }                
+                }                
+
+                open.Remove(current);
+                open.Remove(current.Matching);
+                closed.Add(current.Matching);
+                closed.Add(current);
+
+                open = open.OrderBy(c => scores[c]).ToList();
+                current = open[0].Matching;
+                open.Add(current);
             }
-
         }
 
         public void Render(SpriteBatch spriteBatch)

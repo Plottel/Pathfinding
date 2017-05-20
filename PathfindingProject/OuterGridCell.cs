@@ -116,11 +116,11 @@ namespace PathfindingProject
             // Render the connections.
             foreach (Connection c in Connections)
             {
-                spriteBatch.DrawLine(c.InnerFrom.RenderMid, c.InnerTo.RenderMid, Color.Blue, 3);
+                //spriteBatch.DrawLine(c.InnerFrom.RenderMid, c.InnerTo.RenderMid, Color.Blue, 3);
 
-                spriteBatch.DrawLine(c.OuterFrom.RenderMid, c.OuterTo.RenderMid, Color.Orange, 4);
-                spriteBatch.DrawPoint(c.InnerFrom.RenderMid, Color.Blue, 5);
-                c.Render(spriteBatch);
+               // spriteBatch.DrawLine(c.OuterFrom.RenderMid, c.OuterTo.RenderMid, Color.Orange, 4);
+                //spriteBatch.DrawPoint(c.InnerFrom.RenderMid, Color.Blue, 5);
+               // c.Render(spriteBatch);
             }
         }
     }

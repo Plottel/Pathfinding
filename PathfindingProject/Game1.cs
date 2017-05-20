@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -9,13 +10,26 @@ namespace PathfindingProject
     /// </summary>
     public class Game1 : Game
     {
-        GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
+        private static Game1 _instance;
+        public SpriteFont smallFont;
 
-        World world;
+        public static Game1 Instance
+        {
+            get { return _instance; }
+        }
+
+        public GraphicsDeviceManager graphics;
+        public SpriteBatch spriteBatch;
+
+        public World world;
 
         public Game1()
         {
+            if (_instance == null)
+                _instance = this;
+            else
+                throw new InvalidOperationException("Cannot have more than one instance of World");
+
             graphics = new GraphicsDeviceManager(this);
             Camera.WIDTH = 1366;
             Camera.HEIGHT = 768;
@@ -56,6 +70,7 @@ namespace PathfindingProject
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
+            smallFont = Content.Load<SpriteFont>("SmallFont");
         }
 
         /// <summary>

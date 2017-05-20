@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace PathfindingProject
 {
@@ -41,6 +42,13 @@ namespace PathfindingProject
                 cell.Passable = true;
                 cell.Color = Color.ForestGreen;
                 Grid.CalculateWholeGridEdgeConnections();
+            }
+
+            if (Input.KeyTyped(Keys.Space))
+            {
+                Connection from = Grid[0, 0].Connections[0];
+                Connection to = Grid[9, 4].Connections.Last();
+                Grid.GetPathFromTo(from, to);
             }
         }
 
