@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Camera.cs" />
     <Compile Include="Cell.cs" />
+    <Compile Include="Connection.cs" />
     <Compile Include="Dir.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Game1.cs" />

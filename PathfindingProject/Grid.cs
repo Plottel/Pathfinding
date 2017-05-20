@@ -116,6 +116,11 @@ namespace PathfindingProject
             get { return new Rectangle((int)Pos.X - Camera.X, (int)Pos.Y - Camera.Y, Width, Height); }
         }
 
+        public Vector2 RenderMid
+        {
+            get { return RenderRect.Center.ToVector2(); }
+        }
+
         /// <summary>
         /// Specifies if a rectangle should be drawn around each cell.
         /// </summary>
@@ -173,6 +178,12 @@ namespace PathfindingProject
         {
             if (cell != null)
                 list.Add(cell);
+        }
+
+        public bool CellIsEdge(Cell cell)
+        {
+            var index = IndexAt(cell.Mid);
+            return index.Col() == 0 || index.Col() == Cols - 1 || index.Row() == 0 || index.Row() == Rows - 1;
         }
 
         /// <summary>
