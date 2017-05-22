@@ -247,7 +247,7 @@ namespace PathfindingProject
                 return new List<Cell>();
 
             // Start with connection closest to finish position.
-            reachableStartingConnections.OrderBy(c => Vector2.Distance(toPos, c.InnerFrom.Mid));
+            reachableStartingConnections = reachableStartingConnections.OrderBy(c => Vector2.Distance(toPos, c.InnerFrom.Mid)).ToList();
 
             var getPathFromConnection = reachableStartingConnections[0];
             var getPathToConnection = reachableEndingConnections[0];
@@ -342,10 +342,10 @@ namespace PathfindingProject
                         open.Add(connection); // Add internal
                         open.Add(connection.Matching); // Add external (matching)
 
-                        if (reachableEndingConnections.Contains(connection))
+                        if (reachableEndingConnections.Contains(connection.Matching))
                         {
                             searchComplete = true;
-                            current = connection;
+                            current = connection.Matching;
                             break;
                         }
                     }                

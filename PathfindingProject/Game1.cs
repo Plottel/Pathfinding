@@ -21,10 +21,34 @@ namespace PathfindingProject
         public GraphicsDeviceManager graphics;
         public SpriteBatch spriteBatch;
 
-        public World world;
+        public IWorld world;
 
         public Game1()
         {
+            //string mode = "";
+
+            //while (mode != "1")
+            //{
+            //    Console.WriteLine("Select pathfinding mode");
+            //    Console.WriteLine("1 - Hierarchical");
+            //    mode = Console.ReadLine();
+            //}
+
+            //switch (mode)
+            //{
+            //    case "1":
+            //        world = new HierarchicalWorld();
+            //        break;
+
+            //    default:
+            //        world = new HierarchicalWorld();
+            //        break;
+            //}
+
+            //world = new HierarchicalWorld();
+            world = new NavMeshWorld();
+
+
             if (_instance == null)
                 _instance = this;
             else
@@ -52,11 +76,6 @@ namespace PathfindingProject
         /// </summary>
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-            world = new World();
-
-
-
             base.Initialize();
         }
 

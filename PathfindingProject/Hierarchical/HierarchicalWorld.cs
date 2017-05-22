@@ -10,10 +10,18 @@ using MonoGame.Extended;
 
 namespace PathfindingProject
 {
-    public class World
+    public class HierarchicalWorld : IWorld
     {
-        public static int Width;
-        public static int Height;
+
+        public int Width
+        {
+            get; set;
+        }
+
+        public int Height
+        {
+            get; set;
+        }
 
         public HierarchicalGrid Grid;
 
@@ -21,9 +29,9 @@ namespace PathfindingProject
         public Vector2 start = Vector2.Zero;
         public Vector2 finish = Vector2.Zero;
 
-        public World()
+        public HierarchicalWorld()
         {
-            Grid = new HierarchicalGrid(new Vector2(0, 0), 128, 4, 11, 6);
+            Grid = new HierarchicalGrid(new Vector2(0, 0), 128 , 4, 11, 6);
             Grid.ShowGrid = true;
 
             Width = Grid.Width;
@@ -70,7 +78,6 @@ namespace PathfindingProject
         public void Render(SpriteBatch spriteBatch)
         {
             Grid.Render(spriteBatch);
-
             RenderPath(spriteBatch);
         }
 

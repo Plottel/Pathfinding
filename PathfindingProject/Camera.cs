@@ -34,8 +34,8 @@ namespace PathfindingProject
             {
                 if (value < 0)
                     Pos.X = 0;
-                else if (value > World.Width - WIDTH)
-                    Pos.X = World.Width - WIDTH;
+                else if (value > Game1.Instance.world.Width - WIDTH)
+                    Pos.X = Game1.Instance.world.Width - WIDTH;
                 else
                     Pos.X = value;
             }
@@ -48,8 +48,8 @@ namespace PathfindingProject
             {
                 if (value < 0)
                     Pos.Y = 0;
-                else if (value > World.Height - HEIGHT)
-                    Pos.Y = World.Height - HEIGHT;
+                else if (value > Game1.Instance.world.Height - HEIGHT)
+                    Pos.Y = Game1.Instance.world.Height - HEIGHT;
                 else
                     Pos.Y = value;
             }
@@ -141,8 +141,8 @@ namespace PathfindingProject
 
         public static Rectangle WorldRectToMinimapRect(Rectangle rect)
         {
-            float xRatio = 1 + (World.Width / MINIMAP_SIZE);
-            float yRatio = 1 + (World.Height / MINIMAP_SIZE);
+            float xRatio = 1 + (Game1.Instance.world.Width / MINIMAP_SIZE);
+            float yRatio = 1 + (Game1.Instance.world.Height / MINIMAP_SIZE);
 
             return new Rectangle(MINIMAP_X + (int)Math.Floor(rect.X / xRatio),
                     MINIMAP_Y + (int)Math.Floor(rect.Y / yRatio),

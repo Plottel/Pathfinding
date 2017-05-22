@@ -49,3 +49,4 @@ C:\Users\Matt\Desktop\Pathfinding\PathfindingProject\obj\x86\Debug\PathfindingPr
 C:\Users\Matt\Desktop\Pathfinding\PathfindingProject\obj\x86\Debug\PathfindingProject.exe
 C:\Users\Matt\Desktop\Pathfinding\PathfindingProject\obj\x86\Debug\PathfindingProject.pdb
 C:\Users\Matt\Desktop\Pathfinding\PathfindingProject\bin\Windows\x86\Debug\Content\SmallFont.xnb
+C:\Users\Matt\Desktop\Pathfinding\PathfindingProject\bin\Windows\x86\Debug\PathfindingProject.exe.config

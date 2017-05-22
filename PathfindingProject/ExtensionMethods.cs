@@ -36,6 +36,16 @@ namespace PathfindingProject
             return new Vector2(rectangle.Right, rectangle.Bottom);
         }
 
+        public static void IncCol(this Point pt)
+        {
+            ++pt.X;
+        }
+
+        public static void IncRow(this Point pt)
+        {
+            ++pt.Y;
+        }
+
         public static int Col (this Point pt)
         {
             return pt.X;

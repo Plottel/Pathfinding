@@ -66,6 +66,17 @@ namespace PathfindingProject
             set { this[cellIndex.Col(), cellIndex.Row()] = value; }
         }
 
+        public List<Cell> this[int col]
+        {
+            get
+            {
+                if (col < 0 || col > Cols - 1)
+                    return new List<Cell>();
+
+                else return _cells[col];
+            }
+        }
+
         /// <summary>
         /// Gets the number of columns in the grid.
         /// </summary>
@@ -189,6 +200,11 @@ namespace PathfindingProject
         {
             var index = IndexAt(cell.Mid);
             return index.Col() == 0 || index.Col() == Cols - 1 || index.Row() == 0 || index.Row() == Rows - 1;
+        }
+
+        public Vector2 IndexToVec(Point cellIndex)
+        {
+            return new Vector2(Pos.X + cellIndex.Col() * _cellSize, Pos.Y + cellIndex.Row() * _cellSize);
         }
 
         /// <summary>

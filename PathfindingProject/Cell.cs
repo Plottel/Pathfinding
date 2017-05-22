@@ -11,8 +11,15 @@ namespace PathfindingProject
 {   
     public class Cell
     {
+        public const uint NOT_PART_OF_MESH = 0;
+
         private int _size;
 
+        public int Width { get; set; }
+        public int Height { get; set; }
+
+        public uint MeshID = NOT_PART_OF_MESH;
+        
         public int Size
         {
             get { return _size; }
@@ -40,7 +47,7 @@ namespace PathfindingProject
         /// </summary>
         public Rectangle CollisionRect
         {
-            get { return new Rectangle((int)Pos.X, (int)Pos.Y, _size, _size); }
+            get { return new Rectangle((int)Pos.X, (int)Pos.Y, Width, Height); }
         }
 
         /// <summary>
@@ -48,7 +55,7 @@ namespace PathfindingProject
         /// </summary>
         public Vector2 Mid
         {
-            get {return new Vector2((int)Pos.X + _size / 2, (int)Pos.Y + _size / 2);}
+            get {return new Vector2((int)Pos.X + Width / 2, (int)Pos.Y + Height / 2);}
         }
 
         /// <summary>
@@ -56,7 +63,7 @@ namespace PathfindingProject
         /// </summary>
         public Rectangle RenderRect
         {
-            get { return new Rectangle((int)Camera.XToScreen(Pos.X), (int)Camera.YToScreen(Pos.Y), _size, _size); }
+            get { return new Rectangle((int)Camera.XToScreen(Pos.X), (int)Camera.YToScreen(Pos.Y), Width, Height); }
         }
         
         /// <summary>
@@ -72,9 +79,15 @@ namespace PathfindingProject
         /// </summary>
         /// <param name="x">The x position.</param>
         /// <param name="y">The y position.</param>
-        public Cell(Vector2 pos, int size)
+        public Cell(Vector2 pos, int size) : this(pos, size, size)
+        {           
+        }
+
+        public Cell(Vector2 pos, int width, int height)
         {
-            _size = size;
+            _size = width;
+            Width = width;
+            Height = height;
             Pos = pos;
             Color = Color.ForestGreen;
             Passable = true;
