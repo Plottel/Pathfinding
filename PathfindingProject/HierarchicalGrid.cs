@@ -152,16 +152,24 @@ namespace PathfindingProject
                     // Clear connections to prevent duplicates.
                     current.Connections = new List<Connection>();
 
+                    // Orthogonal neighbours.
                     OuterGridCell north = this[col, row - 1];
                     OuterGridCell south = this[col, row + 1];
                     OuterGridCell east = this[col + 1, row];
                     OuterGridCell west = this[col - 1, row];
+
+                    // Diagonal neighbours.
+                    OuterGridCell northWest = this[col - 1, row - 1];
+                    OuterGridCell northEast = this[col + 1, row - 1];
+                    OuterGridCell southWest = this[col - 1, row + 1];
+                    OuterGridCell southEast = this[col + 1, row + 1];
 
                     // North -> From[Top] To[Bot]
                     // South -> From[Bot] To[Top]
                     // East -> From[Right] To[Left]
                     // West -> From[Left] To[Right]
 
+                    // Calculate orthogonal edge connections
                     if (north != null)
                         current.Connections.AddRange(CalculateEdgeConnections(this[col, row].GetEdge(Dir.N), north.GetEdge(Dir.S), current, north));
                     if (south != null)
@@ -171,12 +179,34 @@ namespace PathfindingProject
                     if (west != null)
                         current.Connections.AddRange(CalculateEdgeConnections(this[col, row].GetEdge(Dir.W), west.GetEdge(Dir.E), current, west));
 
+                    // Calculate diagonal edge connections
+                    if (CanConnectDiagonally(current, west, north, northWest)) // North West
+                        current.Connections.Add(new Connection(current.GetCorner(Dir.NW), northWest.GetCorner(Dir.SE), current, northWest));
+                    if (CanConnectDiagonally(east, current, northEast, north)) // North East
+                        current.Connections.Add(new Connection(current.GetCorner(Dir.NE), northEast.GetCorner(Dir.SW), current, northEast));
+                    if (CanConnectDiagonally(south, southWest, current, west)) // South West
+                        current.Connections.Add(new Connection(current.GetCorner(Dir.SW), southWest.GetCorner(Dir.NE), current, southWest));
+                    if (CanConnectDiagonally(southEast, south, east, current)) // South East
+                        current.Connections.Add(new Connection(current.GetCorner(Dir.SE), southEast.GetCorner(Dir.NW), current, southEast));
+
+                    // Calculate internal edge connections
                     current.CalculateInternalConnections();
                 }
             }
         }
 
-        public void GetPathFromTo(Connection getPathFromConnection, Connection getPathToConnection)
+        private bool CanConnectDiagonally(OuterGridCell nw, OuterGridCell ne, OuterGridCell sw, OuterGridCell se)
+        {
+            if (nw == null || ne == null || sw == null || se == null)
+                return false;
+
+            return nw.GetCorner(Dir.NW).Passable && 
+                ne.GetCorner(Dir.NE).Passable && 
+                sw.GetCorner(Dir.SW).Passable && 
+                se.GetCorner(Dir.SE).Passable;
+        }
+
+        public void GetPathFromTo(Pos getPathFromConnection, Connection getPathToConnection)
         {
             var open = new List<Connection>();
             var closed = new List<Connection>();
@@ -249,7 +279,7 @@ namespace PathfindingProject
                     Game1.Instance.spriteBatch.End();
                     Game1.Instance.GraphicsDevice.Present();
 
-                    //System.Threading.Thread.Sleep(75);
+                    System.Threading.Thread.Sleep(100);
 
 
                     #endregion Calculate Path Visual
@@ -270,31 +300,13 @@ namespace PathfindingProject
                         parents.Add(connection, current); // Parent internal.
                         parents.Add(connection.Matching, connection); // Parent external (matching)
 
-                        //float score = scores[current];
-                        float score = 0;
-                        Connection c = current;
-
-                        while (parents[c] != null)
-                        {
-                            score += scores[c];
-                            c = parents[c];
-                        }
-
-                        score /= 20;
-
-                        score += Vector2.Distance(connection.InnerTo.Mid, getPathToConnection.InnerTo.Mid);
-
-                        // Score = Euclidian between connections + Euclidian from new to Target
-                        //scores.Add(connection, scores[current] +
-                        //Vector2.Distance(connection.InnerTo.Mid, getPathToConnection.InnerTo.Mid));
-                        ////scores.Add(connection, Vector2.Distance(connection.InnerTo.Mid, getPathToConnection.InnerTo.Mid));
-                        scores.Add(connection, score);
+                        scores.Add(connection, Vector2.Distance(connection.InnerTo.Mid, getPathToConnection.InnerTo.Mid));
                         scores.Add(connection.Matching, scores[connection]);
 
                         open.Add(connection); // Add internal
-                        open.Add(connection.Matching);
+                        open.Add(connection.Matching); // Add external (matching)
                     }                
-                }                
+                }
 
                 open.Remove(current);
                 open.Remove(current.Matching);
