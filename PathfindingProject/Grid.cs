@@ -121,6 +121,11 @@ namespace PathfindingProject
             get { return RenderRect.Center.ToVector2(); }
         }
 
+        public Vector2 Mid
+        {
+            get { return RenderRect.Center.ToVector2(); }
+        }
+
         /// <summary>
         /// Specifies if a rectangle should be drawn around each cell.
         /// </summary>

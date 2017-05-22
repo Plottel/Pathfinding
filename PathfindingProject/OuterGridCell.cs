@@ -62,13 +62,13 @@ namespace PathfindingProject
             return _corners[dir];
         }
 
-        private List<Cell> GetReachableEdgeCells(Connection calculatingFor)
+        private List<Cell> GetReachableEdgeCells(Cell startingCell)
         {
             var reachableEdgeCells = new List<Cell>();
             var open = new List<Cell>();
             var closed = new List<Cell>();
             Cell current = null; 
-            var source = calculatingFor.InnerFrom;
+            var source = startingCell;
 
             open.Add(source);
             reachableEdgeCells.Add(source);
@@ -99,6 +99,23 @@ namespace PathfindingProject
             return reachableEdgeCells;
         }
 
+        public List<Connection> GetReachableConnections(Cell startingCell)
+        {
+            var reachableConnections = new List<Connection>();
+
+            // foreach Cell in the FloodFill's result
+            foreach (Cell cell in GetReachableEdgeCells(startingCell))
+                // Find corresponding connection(s) to cell.
+                reachableConnections.AddRange(Connections.FindAll(c => c.InnerFrom == cell));
+
+            return reachableConnections;
+        }
+
+        public List<Connection> GetReachableConnections(Vector2 pos)
+        {
+            return GetReachableConnections(CellAt(pos));
+        }
+
         public void CalculateInternalConnections()
         {
             // foreach Connection C in connections
@@ -107,24 +124,14 @@ namespace PathfindingProject
                 // Reset connections to prevent duplicates.
                 connection.Connections = new HashSet<Connection>();
 
-                // Run Floodfill's and see which cells it reaches
-                var reachableCells = GetReachableEdgeCells(connection);
-
-                // foreach Cell in the FloodFill's result
-                foreach (Cell cell in reachableCells)
+                foreach (Connection connectionAtCell in GetReachableConnections(connection.InnerFrom))
                 {
-                    // Find corresponding connection(s) to cell.
-                    List<Connection> connectionsAtCell = Connections.FindAll(c => c.InnerFrom == cell);
-
-                    foreach (Connection connectionAtCell in connectionsAtCell)
+                    if (connectionAtCell != null)
                     {
-                        if (connectionAtCell != null)
-                        {
-                            if (connection.OuterTo != connectionAtCell.OuterTo)
-                                connection.Connections.Add(connectionAtCell);
-                        }
-                    }                                      
-                }
+                        if (connection.OuterTo != connectionAtCell.OuterTo)
+                            connection.Connections.Add(connectionAtCell);
+                    }
+                }                                      
             }                    
         }
 
@@ -134,7 +141,7 @@ namespace PathfindingProject
             foreach (Connection c in Connections)
             {
                 // Render actual bridge connections.
-                spriteBatch.DrawLine(c.InnerFrom.RenderMid, c.InnerTo.RenderMid, Color.Blue, 3);
+                //spriteBatch.DrawLine(c.InnerFrom.RenderMid, c.InnerTo.RenderMid, Color.Blue, 3);
 
                 // Render high-level OuterGridCell connections.
                 //spriteBatch.DrawLine(c.OuterFrom.RenderMid, c.OuterTo.RenderMid, Color.Orange, 4);
