@@ -55,6 +55,7 @@
     <Compile Include="Input.cs" />
     <Compile Include="Hierarchical\OuterGridCell.cs" />
     <Compile Include="IWorld.cs" />
+    <Compile Include="NavMesh\NavMeshGenerator.cs" />
     <Compile Include="NavMesh\NavMeshCell.cs" />
     <Compile Include="NavMesh\NavMeshWorld.cs" />
     <Compile Include="Program.cs" />
