@@ -18,7 +18,6 @@ namespace PathfindingProject
             get { return _nextMeshID++; }
         }
 
-
         public NavMeshCell(Vector2 pos, int width, int height) : base(pos, width, height)
         { 
         }
