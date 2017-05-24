@@ -22,16 +22,15 @@ namespace PathfindingProject
         public NavMeshWorld()
         {
             //Grid = new Grid(new Vector2(0, 0), 176, 96, 8);
-            Grid = new Grid(new Vector2(0, 0), 44, 24, 32);
+            Grid = new Grid(new Vector2(0, 0), 42, 22, 32);
             Grid.ShowGrid = false;
-            Grid.MakeBorder();
 
             Random rnd = new Random();
             for (int col = 0; col < Grid.Cols; col++)
             {
                 for (int row = 0; row < Grid.Rows; row++)
                 {
-                    if (rnd.NextSingle(0, 1) < 0.005)
+                    if (rnd.NextSingle(0, 1) < 0.012)
                     {
                         Grid[col, row].Passable = false;
                         Grid[col, row].Color = Color.Black;
@@ -42,24 +41,33 @@ namespace PathfindingProject
 
         public void HandleInput()
         {
+            Cell cell = Grid.CellAt(Input.MousePos);
+
             if (Input.KeyTyped(Keys.Space))
             {
                 _navCells = new List<NavMeshCell>();
                 _navCells = NavMeshGenerator.CalculateNavMeshCells(Grid);
             }
                 
-
-            if (Input.LeftMouseDown())
+            if (cell != null)
             {
-                Grid.CellAt(Input.MousePos).Passable = false;
-                Grid.CellAt(Input.MousePos).Color = Color.Black;
-            }
+                if (Input.LeftMouseDown())
+                {
+                    cell.Passable = false;
+                    cell.Color = Color.Black;
+                    _navCells = new List<NavMeshCell>();
+                    _navCells = NavMeshGenerator.CalculateNavMeshCells(Grid);
+                }
 
-            if (Input.RightMouseDown())
-            {
-                Grid.CellAt(Input.MousePos).Passable = true;
-                Grid.CellAt(Input.MousePos).Color = Color.ForestGreen;
+                if (Input.RightMouseDown())
+                {
+                    cell.Passable = true;
+                    cell.Color = Color.ForestGreen;
+                    _navCells = new List<NavMeshCell>();
+                    _navCells = NavMeshGenerator.CalculateNavMeshCells(Grid);
+                }
             }
+            
         }
 
         public void Update()
@@ -71,13 +79,23 @@ namespace PathfindingProject
             Grid.Render(spriteBatch);
 
             foreach (NavMeshCell c in _navCells)
-                spriteBatch.DrawRectangle(c.RenderRect, Color.DarkBlue, 5);
+                spriteBatch.DrawRectangle(c.RenderRect, Color.DarkBlue, 2);
 
-            for (int col = 0; col < Grid.Cols; col++)
+            //for (int col = 0; col < Grid.Cols; col++)
+            //{
+            //    for (int row = 0; row < Grid.Rows; row++)
+            //        spriteBatch.DrawString(Game1.Instance.smallFont, Grid[col, row].MeshID.ToString(), Grid[col, row].RenderMid, Color.Black);
+            //}
+
+            // Render neighbours white
+            foreach (NavMeshCell navCell in _navCells)
             {
-                for (int row = 0; row < Grid.Rows; row++)
-                    spriteBatch.DrawString(Game1.Instance.smallFont, Grid[col, row].MeshID.ToString(), Grid[col, row].RenderMid, Color.Black);
+                foreach (NavMeshCell neighbour in navCell.Neighbours)
+                    Game1.Instance.spriteBatch.DrawLine(navCell.RenderMid, neighbour.RenderMid, Color.White, 1);
             }
+
+            foreach (NavMeshCell cell in _navCells)
+                Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, cell.NavMeshID.ToString(), cell.RenderMid, Color.Black);
         }
 
         private void AddColumn(List<List<Cell>> cellList, List<Cell> newCol)

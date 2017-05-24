@@ -28,7 +28,7 @@ namespace PathfindingProject
         /// <summary>
         /// The position of the cell.
         /// </summary>
-        public Vector2 Pos { get; set; }       
+        public Vector2 Pos;    
 
         /// <summary>
         /// The color.
@@ -91,6 +91,7 @@ namespace PathfindingProject
             Pos = pos;
             Color = Color.ForestGreen;
             Passable = true;
+            Neighbours = new List<Cell>();
         }
 
         /// <summary>

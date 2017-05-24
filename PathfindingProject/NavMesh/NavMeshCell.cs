@@ -18,6 +18,21 @@ namespace PathfindingProject
             get { return _nextMeshID++; }
         }
 
+        public static void ResetMeshIDs()
+        {
+            _nextMeshID = 1;
+        }
+
+        public bool HasNeighbour(uint id)
+        {
+            foreach (NavMeshCell cell in Neighbours)
+            {
+                if (cell.NavMeshID == id)
+                    return true;
+            }
+            return false;
+        }
+
         public NavMeshCell(Vector2 pos, int width, int height) : base(pos, width, height)
         { 
         }

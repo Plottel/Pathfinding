@@ -12,19 +12,31 @@ namespace PathfindingProject
     public static class NavMeshGenerator
     {
         private static Point startAt = new Point(1, 1);
-        private static int curCellCols = 1;
-        private static int curCellRows = 1;
         private static bool finishedCalculating = false;
-        private static bool blockedOnCols = false;
-        private static bool blockedOnRows = false;
+        private static bool blockedEast = false;
+        private static bool blockedSouth = false;
+        private static bool blockedWest = false;
+        private static bool blockedNorth = false;
         private static bool debug = true;
         private static List<NavMeshCell> navCells;
         private static List<Cell> frontier;
         private static NavMeshCell curCell;
         private static Grid Grid;
 
+        private static void AddNavCell(NavMeshCell cell)
+        {
+            navCells.Add(cell);
+            navCells = navCells.OrderBy(c => c.NavMeshID).ToList();
+        }
+        
+        private static bool BlockedOnAllSides
+        {
+            get { return blockedEast && blockedSouth && blockedWest && blockedNorth; }
+        }
+
         public static List<NavMeshCell> CalculateNavMeshCells(Grid grid)
         {
+            NavMeshCell.ResetMeshIDs();
             Grid = grid;
 
             for (int col = 0; col < Grid.Cols; col++)
@@ -33,13 +45,15 @@ namespace PathfindingProject
                     Grid[col, row].MeshID = Cell.NOT_PART_OF_MESH;
             }
 
-            startAt = new Point(1, 1);
-            curCellCols = 1;
-            curCellRows = 1;
+            startAt = new Point(Grid.Cols / 2, Grid.Rows / 2);
+            Grid[startAt].Passable = true;
+            //startAt = new Point(0, 0);
             finishedCalculating = false;
-            blockedOnCols = false;
-            blockedOnRows = false;
-            debug = true;
+            blockedEast = false;
+            blockedSouth = false;
+            blockedWest = false;
+            blockedNorth = false;
+            debug = false;
 
             navCells = new List<NavMeshCell>();
             curCell = new NavMeshCell(Grid[startAt].Pos, Grid.CellSize, Grid.CellSize);
@@ -47,125 +61,123 @@ namespace PathfindingProject
 
             while (!finishedCalculating)
             {
-                if (!blockedOnCols)
+                // If cell is becoming long and skinny, restrict expansion on that axis.
+
+                // Restrict East / West expansion
+                if (curCell.Width >= curCell.Height * 3)
                 {
-                    // Add col
-                    var newCol = GetColRange(startAt.Col() + curCellCols, startAt.Row(), startAt.Row() + curCellRows - 1);
+                    blockedEast = true;
+                    blockedWest = true;
+                }
 
-                    if (debug)
-                        RenderNavMeshCalculation(startAt, curCell, blockedOnCols, blockedOnRows, newCol, frontier);
+                // Restrict North / South expansion
+                if (curCell.Height >= curCell.Width * 3)
+                {
+                    blockedNorth = true;
+                    blockedSouth = true;
+                }
 
-                    // If one of the cells in the list is !Passable OR it's already part of the mesh, we are blocked on cols.
-                    if (newCol.Count == 0)
-                        blockedOnCols = true;
-                    else
-                        blockedOnCols = newCol.Find(cell => !cell.Passable || cell.MeshID != Cell.NOT_PART_OF_MESH) != null;
+                // Try to expand east.
+                if (!blockedEast)
+                {
+                    blockedEast = DoNewCellsBlock(GetNextEastCol());
 
-                    if (!blockedOnCols)
+                    // Expansion is valid.
+                    if (!blockedEast)
                     {
+                        // Increase size of current cell.
                         curCell.Width += Grid.CellSize;
-                        //AddColumn(currentCells, newCol);
-                        ++curCellCols;
                     }
+                        
                 }
 
-                if (!blockedOnRows)
+                // Try to expand south.
+                if (!blockedSouth)
                 {
-                    // Add row
-                    var newRow = GetRowRange(startAt.Row() + curCellRows, startAt.Col(), startAt.Col() + curCellCols - 1);
-
-                    if (debug)
-                        RenderNavMeshCalculation(startAt, curCell, blockedOnCols, blockedOnRows, newRow, frontier);
-
-                    if (newRow.Count == 0)
-                        blockedOnRows = true;
-                    else
-                        blockedOnRows = newRow.Find(cell => !cell.Passable || cell.MeshID != Cell.NOT_PART_OF_MESH) != null;
-
-                    if (!blockedOnRows)
+                    blockedSouth = DoNewCellsBlock(GetNextSouthRow());
+                    
+                    // Expansion is valid
+                    if (!blockedSouth)
                     {
+                        // Increase size of current cell.
                         curCell.Height += Grid.CellSize;
-                        ++curCellRows;
+                    }
+                        
+                }
+
+                // Try to expand west.
+                if (!blockedWest)
+                {
+                    blockedWest = DoNewCellsBlock(GetNextWestCol());
+
+                    // Expansion is valid
+                    if (!blockedWest)
+                    {
+                        // Increase size of current cell.
+                        curCell.Width += Grid.CellSize;
+                        curCell.Pos.X -= Grid.CellSize;
                     }
                 }
 
-                if (blockedOnCols && blockedOnRows)
+                // Try to expand north.
+                if (!blockedNorth)
+                {
+                    blockedNorth = DoNewCellsBlock(GetNextNorthRow());
+
+                    // Expansion is valid.
+                    if (!blockedNorth)
+                    {
+                        // Increase size of current cell.
+                        curCell.Height += Grid.CellSize;
+                        curCell.Pos.Y -= Grid.CellSize;
+                    }                    
+                }
+
+                // Blocked on both dimensinos, finalise this nav mesh cell.
+                if (BlockedOnAllSides)
                 {
                     // Finish making this cell and start making a new one.
                     // Probably calculate neighbours here too.
-                    if (curCellCols > 0 && curCellRows > 0)
+                    uint nextMeshID = NavMeshCell.NextMeshID;
+                    curCell.NavMeshID = nextMeshID;
+                    AddNavCell(curCell);
+
+                    // Assign each cell in the area as part of the new Nav Mesh Cell.
+                    foreach (Cell c in Grid.CellsInRect(curCell.CollisionRect.GetInflated(-1, -1)))
+                        c.MeshID = nextMeshID;
+
+                    // Update frontier to remove any cells now part of the mesh
+                    for (int i = frontier.Count - 1; i >= 0; i--)
                     {
-                        uint nextMeshID = NavMeshCell.NextMeshID;
-                        curCell.NavMeshID = nextMeshID;
-                        navCells.Add(curCell);
-
-                        // Assign each cell in the area as part of the new Nav Mesh Cell.
-                        Point topLeft = Grid.IndexAt(curCell.Pos);
-                        Point bottomRight = Grid.IndexAt(curCell.CollisionRect.BottomRight());
-
-                        for (int col = topLeft.Col(); col < bottomRight.Col(); col++)
-                        {
-                            for (int row = topLeft.Row(); row < bottomRight.Row(); row++)
-                                Grid[col, row].MeshID = nextMeshID;
-                        }
-
-                        // Update frontier to remove any cells now part of the mesh
-                        for (int i = frontier.Count - 1; i >= 0; i--)
-                        {
-                            if (frontier[i].MeshID != Cell.NOT_PART_OF_MESH)
-                                frontier.RemoveAt(i);
-                        }
-
-                        // Add next col and row to frontier.
-                        var nextCol = GetColRange(bottomRight.Col(), topLeft.Row(), bottomRight.Row());
-                        var nextRow = GetRowRange(bottomRight.Row(), topLeft.Col(), bottomRight.Col());
-                        var aboveRow = GetRowRange(topLeft.Row() - 1, topLeft.Col(), bottomRight.Col());
-                        var leftCol = GetColRange(topLeft.Col() - 1, topLeft.Col(), bottomRight.Col());
-
-                        var newCells = nextCol.Concat(nextCol).Concat(aboveRow).Concat(leftCol);
-
-                        foreach (Cell c in newCells)
-                        {
-                            if (c.Passable && c.MeshID == Cell.NOT_PART_OF_MESH)
-                                frontier.Add(c);
-                        }
+                        if (frontier[i].MeshID != Cell.NOT_PART_OF_MESH)
+                            frontier.RemoveAt(i);
                     }
 
-                    // Scan grid until we find a new suitable spot to start a nav mesh cell
-                    bool validCell = false;
-                    //currentCells = new List<List<Cell>>();
+                    // Get surrounding cells. 
+                    var newCells = GetNextEastCol().Concat(GetNextWestCol()).Concat(GetNextSouthRow()).Concat(GetNextNorthRow());
+
+                    foreach (Cell c in newCells)
+                    {
+                        // Add to frontier if valid
+                        if (c.Passable && c.MeshID == Cell.NOT_PART_OF_MESH)
+                            frontier.Add(c);
+
+                        // Add surrounding NavMeshCell to curCell neighbours
+                        if (c.MeshID != Cell.NOT_PART_OF_MESH && !curCell.HasNeighbour(c.MeshID))
+                            curCell.Neighbours.Add(navCells[(int)c.MeshID - 1]);
+                    }
 
                     if (frontier.Count == 0)
-                    {
-                        finishedCalculating = true;
-                        break;
-                    }
-
-                    Random rnd = new Random();
-
-                    while (!validCell)
-                    {
-                        int next = rnd.Next(0, frontier.Count - 1);
-
-                        if (frontier[next].Passable)
-                        {
-                            startAt = Grid.IndexAt(frontier[next].Mid);
-                            validCell = true;
-                            break;
-                        }
-
-                        if (debug)
-                            RenderNavMeshCalculation(startAt, curCell, blockedOnCols, blockedOnRows, new List<Cell>(), frontier);
-                    }
+                        finishedCalculating = true;             
 
                     if (!finishedCalculating)
                     {
-                        // Have we reached end of graph
+                        startAt = Grid.IndexAt(frontier[0].Mid);
                         curCell = new NavMeshCell(Grid[startAt].Pos, Grid.CellSize, Grid.CellSize);
-                        curCellCols = 1;
-                        curCellRows = 1;
-                        blockedOnCols = false;
-                        blockedOnRows = false;
+                        blockedEast = false;
+                        blockedSouth = false;
+                        blockedNorth = false;
+                        blockedWest = false;
                     }
                 }
             }
@@ -188,7 +200,7 @@ namespace PathfindingProject
 
             // Render already constructed nav cells dark blue.
             foreach (NavMeshCell cell in navCells)
-                Game1.Instance.spriteBatch.DrawRectangle(cell.RenderRect, Color.DarkBlue, 5);
+                Game1.Instance.spriteBatch.DrawRectangle(cell.RenderRect, Color.DarkBlue, 2);
 
             // Render currently being constructed nav cell pink
             Game1.Instance.spriteBatch.FillRectangle(curNavCell.RenderRect, Color.Pink);
@@ -204,16 +216,26 @@ namespace PathfindingProject
             foreach (Cell c in toBeConsidered)
                 Game1.Instance.spriteBatch.FillRectangle(c.RenderRect, Color.Yellow);
 
-            // Render Mesh IDs for each cell.
-            for (int col = 0; col < Grid.Cols; col++)
+            // Render neighbours white
+            foreach (NavMeshCell navCell in navCells)
             {
-                for (int row = 0; row < Grid.Rows; row++)
-                {
-                    Cell c = Grid[col, row];
-
-                    Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, c.MeshID.ToString(), c.RenderMid, Color.Black);
-                }
+                foreach (NavMeshCell neighbour in navCell.Neighbours)
+                    Game1.Instance.spriteBatch.DrawLine(navCell.RenderMid, neighbour.RenderMid, Color.White, 1);
             }
+
+            // Render Mesh IDs for each cell.
+            //for (int col = 0; col < Grid.Cols; col++)
+            //{
+            //    for (int row = 0; row < Grid.Rows; row++)
+            //    {
+            //        Cell c = Grid[col, row];
+
+            //        Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, c.MeshID.ToString(), c.RenderMid, Color.Black);
+            //    }
+            //}
+
+            foreach (NavMeshCell cell in navCells)
+                Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, cell.NavMeshID.ToString(), cell.RenderMid, Color.Black);
 
             Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, "BLOCKED ON COLS: " + blockedOnCols.ToString(), new Vector2(300, 300), Color.White);
             Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, "BLOCKED ON ROWS: " + blockedOnRows.ToString(), new Vector2(300, 320), Color.White);
@@ -221,27 +243,70 @@ namespace PathfindingProject
             Game1.Instance.spriteBatch.End();
             Game1.Instance.GraphicsDevice.Present();
 
-            //System.Threading.Thread.Sleep(450);
+            //System.Threading.Thread.Sleep(400);
         }
 
-        private static List<Cell> GetColRange(int col, int start, int end)
+        public static bool DoNewCellsBlock(List<Cell> cells)
+        {
+            if (debug)
+                RenderNavMeshCalculation(startAt, curCell, blockedEast, blockedSouth, cells, frontier);
+
+            if (cells.Count == 0)
+                return true;
+            else
+                return cells.Find(cell => !cell.Passable || cell.MeshID != Cell.NOT_PART_OF_MESH) != null;
+        }       
+
+        private static List<Cell> GetNextEastCol()
         {
             var result = new List<Cell>();
 
-            for (int i = start; i <= end; i++)
-                Grid.AddCell(Grid[col, i], result);
+            Point topRight = Grid.IndexAt(new Vector2(curCell.Pos.X + curCell.Width + 1, curCell.Pos.Y));
+            int numRows = curCell.Height / Grid.CellSize;
+
+            for (int i = 0; i < numRows; i++)
+                Grid.AddCell(Grid[topRight.Col(), topRight.Row() + i], result);
 
             return result;
         }
 
-        private static List<Cell> GetRowRange(int row, int start, int end)
+        private static List<Cell> GetNextWestCol()
         {
             var result = new List<Cell>();
 
-            for (int i = start; i <= end; i++)
-                Grid.AddCell(Grid[i, row], result);
+            Point topLeft = Grid.IndexAt(new Vector2(curCell.Pos.X - 1, curCell.Pos.Y));
+            int numRows = curCell.Height / Grid.CellSize;
+
+            for (int i = 0; i < numRows; i++)
+                Grid.AddCell(Grid[topLeft.Col(), topLeft.Row() + i], result);
 
             return result;
         }
+
+        private static List<Cell> GetNextSouthRow()
+        {
+            var result = new List<Cell>();
+
+            Point botLeft = Grid.IndexAt(new Vector2(curCell.Pos.X, curCell.Pos.Y + curCell.Height + 1));
+            int numCols = curCell.Width / Grid.CellSize;
+
+            for (int i = 0; i < numCols; i++)
+                Grid.AddCell(Grid[botLeft.Col() + i, botLeft.Row()], result);
+
+            return result;
+        }
+
+        private static List<Cell> GetNextNorthRow()
+        {
+            var result = new List<Cell>();
+
+            Point topLeft = Grid.IndexAt(new Vector2(curCell.Pos.X, curCell.Pos.Y - 1));
+            int numCols = curCell.Width / Grid.CellSize;
+
+            for (int i = 0; i < numCols; i++)
+                Grid.AddCell(Grid[topLeft.Col() + i, topLeft.Row()], result);
+
+            return result;
+        }        
     }
 }
