@@ -149,7 +149,7 @@ namespace PathfindingProject
         /// <param name="y"></param>
         /// <param name="cols"></param>
         /// <param name="rows"></param>
-        public Grid(Vector2 pos, int cols, int rows, int cellSize)
+        public Grid(Vector2 pos, int cols, int rows, int cellSize, bool includeDiagonals)
         {
             Pos = pos;
 
@@ -159,10 +159,10 @@ namespace PathfindingProject
             AddRows(rows);
             ShowGrid = true;
 
-            SetupCellNeighbours();
+            SetupCellNeighbours(includeDiagonals);
         }
 
-        private void SetupCellNeighbours()
+        private void SetupCellNeighbours(bool includeDiagonals)
         {
             for (int col = 0; col < Cols; col++)
             {
@@ -171,10 +171,13 @@ namespace PathfindingProject
                     var neighbours = new List<Cell>();
 
                     // Diagonal
-                    //foreach (Point cellIndex in Get33GridIndexesAroundIndex(new Point(col, row)))
-                    //{
-                      //  AddCell(this[cellIndex], neighbours);
-                    //}
+                    if (includeDiagonals)
+                    {
+                        foreach (Point cellIndex in Get33GridIndexesAroundIndex(new Point(col, row)))
+                        {
+                            AddCell(this[cellIndex], neighbours);
+                        }
+                    }                   
 
                     // Orthogonal
                     AddCell(this[col - 1, row], neighbours); // West
@@ -185,6 +188,44 @@ namespace PathfindingProject
                     this[col, row].Neighbours = neighbours;
                 }
             }
+        }
+
+        public void UpdateNeighboursAroundIndex(Point index)
+        {
+            // TODO: This is really messy. REALLY shouldn't need to store 8 cell variables here.
+
+            foreach (Point idx in Get33GridIndexesAroundIndex(index))
+            {
+                Cell c = this[idx];
+                var neighbours = new List<Cell>();
+
+                Cell n = this[idx.Col(), idx.Row() - 1];
+                Cell ne = this[idx.Col() + 1, idx.Row() - 1];
+                Cell e = this[idx.Col() + 1, idx.Row()];
+                Cell se = this[idx.Col() + 1, idx.Row() + 1];
+                Cell s = this[idx.Col(), idx.Row() + 1];
+                Cell sw = this[idx.Col() - 1, idx.Row() + 1];
+                Cell w = this[idx.Col() - 1, idx.Row()];
+                Cell nw = this[idx.Col() - 1, idx.Row() - 1];
+
+                // Add orthogonals.
+                AddCell(n, neighbours);
+                AddCell(e, neighbours);
+                AddCell(s, neighbours);
+                AddCell(w, neighbours);
+
+                // Add diagonals if orthogonal components are passable.
+                if (n != null && n.Passable && e != null && e.Passable)
+                    AddCell(ne, neighbours);
+                if (n != null && n.Passable && w != null && w.Passable)
+                    AddCell(nw, neighbours);
+                if (s != null && s.Passable && e != null && e.Passable)
+                    AddCell(se, neighbours);
+                if (s != null && s.Passable && w != null && w.Passable)
+                    AddCell(sw, neighbours);
+
+                c.Neighbours = neighbours;
+            }            
         }
 
         /// <summary>

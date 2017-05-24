@@ -16,7 +16,7 @@ namespace PathfindingProject
         public List<Connection> Connections;
         public List<OuterGridCell> Neighbours = new List<OuterGridCell>();
 
-        public OuterGridCell(Vector2 pos, int cols, int rows, int cellSize) : base(pos, cols, rows, cellSize)
+        public OuterGridCell(Vector2 pos, int cols, int rows, int cellSize) : base(pos, cols, rows, cellSize, false)
         {
             _edges = new Dictionary<Dir, List<Cell>>();
             _corners = new Dictionary<Dir, Cell>();

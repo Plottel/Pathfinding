@@ -46,7 +46,8 @@ namespace PathfindingProject
             //}
 
             //world = new HierarchicalWorld();
-            world = new NavMeshWorld();
+            //world = new NavMeshWorld();
+            world = new FlowFieldWorld();
 
 
             if (_instance == null)

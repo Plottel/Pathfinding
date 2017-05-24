@@ -34,6 +34,73 @@ namespace PathfindingProject
             get { return blockedEast && blockedSouth && blockedWest && blockedNorth; }
         }
 
+        public static void AddConnection(Cell traceCur, Cell traceStart, NavMeshCell navCell)
+        {
+            if (traceCur == null || traceStart == null)
+                return;
+
+            // Determine which side the connected cell is on.
+            // Generate edge at opposite side.
+            Vector2 center;
+
+            if (traceCur.Mid.X > navCell.CollisionRect.Right) // East
+                center = (traceStart.CollisionRect.CenterLeft() + traceCur.CollisionRect.CenterLeft()) / 2;
+            else if (traceCur.Mid.X < navCell.CollisionRect.Left) // West
+                center = (traceStart.CollisionRect.CenterRight() + traceCur.CollisionRect.CenterRight()) / 2;
+            else if (traceCur.Mid.Y < navCell.CollisionRect.Top) // North
+                center = (traceStart.CollisionRect.CenterBottom() + traceCur.CollisionRect.CenterBottom()) / 2;
+            else // South
+                center = (traceStart.CollisionRect.CenterTop() + traceCur.CollisionRect.CenterTop()) / 2;
+
+            NavMeshCell other = navCells[(int)traceStart.MeshID - 1];
+
+            navCell.Neighbours.Add(other);
+            navCell.Waypoints.Add(other, center);
+        }
+
+        public static void CalculateNeighbours()
+        {
+            foreach (NavMeshCell navCell in navCells)
+            {
+                Cell traceStart = null;
+                Cell traceCur = null;
+
+                foreach (Cell c in GetNextBorder(navCell))
+                {
+                    if (debug)
+                        RenderNavMeshCalculation(startAt, curCell, false, false, new List<Cell>(), frontier, traceStart, traceCur);
+
+                    // Add surrounding NavMeshCell to curCell neighbours
+                    if (c.MeshID != Cell.NOT_PART_OF_MESH && !navCell.HasNeighbour(c.MeshID))
+                    {
+                        // Start tracing along a new nav cell.
+                        if (traceStart == null)
+                        {
+                            traceStart = c;
+                            traceCur = c;
+                        }
+                        else
+                        {
+                            // If we're still tracing along same nav cell, extend the trace.
+                            if (c.MeshID == traceStart.MeshID)
+                                traceCur = c;
+                            else // Finished trace, generate edge.
+                            {
+                                AddConnection(traceCur, traceStart, navCell);
+
+                                // Start new trace.
+                                traceStart = c;
+                                traceCur = c;
+                            }
+                        }
+                    }
+                }
+
+                // Check to see if last cell should have generated a connection.
+                AddConnection(traceCur, traceStart, navCell);
+            }
+        }
+
         public static List<NavMeshCell> CalculateNavMeshCells(Grid grid)
         {
             NavMeshCell.ResetMeshIDs();
@@ -53,7 +120,7 @@ namespace PathfindingProject
             blockedSouth = false;
             blockedWest = false;
             blockedNorth = false;
-            debug = false;
+            debug = true;
 
             navCells = new List<NavMeshCell>();
             curCell = new NavMeshCell(Grid[startAt].Pos, Grid.CellSize, Grid.CellSize);
@@ -80,7 +147,7 @@ namespace PathfindingProject
                 // Try to expand east.
                 if (!blockedEast)
                 {
-                    blockedEast = DoNewCellsBlock(GetNextEastCol());
+                    blockedEast = DoNewCellsBlock(GetNextEastCol(curCell));
 
                     // Expansion is valid.
                     if (!blockedEast)
@@ -94,7 +161,7 @@ namespace PathfindingProject
                 // Try to expand south.
                 if (!blockedSouth)
                 {
-                    blockedSouth = DoNewCellsBlock(GetNextSouthRow());
+                    blockedSouth = DoNewCellsBlock(GetNextSouthRow(curCell));
                     
                     // Expansion is valid
                     if (!blockedSouth)
@@ -108,7 +175,7 @@ namespace PathfindingProject
                 // Try to expand west.
                 if (!blockedWest)
                 {
-                    blockedWest = DoNewCellsBlock(GetNextWestCol());
+                    blockedWest = DoNewCellsBlock(GetNextWestCol(curCell));
 
                     // Expansion is valid
                     if (!blockedWest)
@@ -122,7 +189,7 @@ namespace PathfindingProject
                 // Try to expand north.
                 if (!blockedNorth)
                 {
-                    blockedNorth = DoNewCellsBlock(GetNextNorthRow());
+                    blockedNorth = DoNewCellsBlock(GetNextNorthRow(curCell));
 
                     // Expansion is valid.
                     if (!blockedNorth)
@@ -154,17 +221,13 @@ namespace PathfindingProject
                     }
 
                     // Get surrounding cells. 
-                    var newCells = GetNextEastCol().Concat(GetNextWestCol()).Concat(GetNextSouthRow()).Concat(GetNextNorthRow());
+                    var newCells = GetNextBorder(curCell);
 
                     foreach (Cell c in newCells)
                     {
                         // Add to frontier if valid
                         if (c.Passable && c.MeshID == Cell.NOT_PART_OF_MESH)
-                            frontier.Add(c);
-
-                        // Add surrounding NavMeshCell to curCell neighbours
-                        if (c.MeshID != Cell.NOT_PART_OF_MESH && !curCell.HasNeighbour(c.MeshID))
-                            curCell.Neighbours.Add(navCells[(int)c.MeshID - 1]);
+                            frontier.Add(c);                                                                         
                     }
 
                     if (frontier.Count == 0)
@@ -182,6 +245,7 @@ namespace PathfindingProject
                 }
             }
 
+            CalculateNeighbours();
             return navCells;
         }
 
@@ -190,38 +254,55 @@ namespace PathfindingProject
                                                 bool blockedOnCols,
                                                 bool blockedOnRows,
                                                 List<Cell> toBeConsidered,
-                                                List<Cell> frontier)
+                                                List<Cell> frontier, 
+                                                Cell traceStart, 
+                                                Cell traceCur)
         {
+            SpriteBatch spriteBatch = Game1.Instance.spriteBatch;
+
+
             Input.UpdateStates();
             Game1.Instance.GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            Game1.Instance.spriteBatch.Begin();
-            Game1.Instance.world.Render(Game1.Instance.spriteBatch);
+            spriteBatch.Begin();
+            Game1.Instance.world.Render(spriteBatch);
 
             // Render already constructed nav cells dark blue.
             foreach (NavMeshCell cell in navCells)
-                Game1.Instance.spriteBatch.DrawRectangle(cell.RenderRect, Color.DarkBlue, 2);
+                spriteBatch.DrawRectangle(cell.RenderRect, Color.DarkBlue, 2);
 
             // Render currently being constructed nav cell pink
-            Game1.Instance.spriteBatch.FillRectangle(curNavCell.RenderRect, Color.Pink);
+            spriteBatch.FillRectangle(curNavCell.RenderRect, Color.Pink);
 
             // Render current location to start new nav cell
-            Game1.Instance.spriteBatch.FillRectangle(Grid[startCellAtIndex].RenderRect, Color.Teal);
+            spriteBatch.FillRectangle(Grid[startCellAtIndex].RenderRect, Color.Teal);
 
             // Render frontier brown
             foreach (Cell c in frontier)
-                Game1.Instance.spriteBatch.FillRectangle(c.RenderRect, Color.Brown);
+                spriteBatch.FillRectangle(c.RenderRect, Color.Brown);
 
             // Render new cells to be considered in yellow
             foreach (Cell c in toBeConsidered)
-                Game1.Instance.spriteBatch.FillRectangle(c.RenderRect, Color.Yellow);
+                spriteBatch.FillRectangle(c.RenderRect, Color.Yellow);
 
             // Render neighbours white
             foreach (NavMeshCell navCell in navCells)
             {
-                foreach (NavMeshCell neighbour in navCell.Neighbours)
-                    Game1.Instance.spriteBatch.DrawLine(navCell.RenderMid, neighbour.RenderMid, Color.White, 1);
+                foreach (Vector2 pos in navCell.Waypoints.Values)
+                    spriteBatch.DrawLine(navCell.RenderMid, pos, Color.White, 1);
+
+                spriteBatch.DrawPoint(navCell.RenderMid, Color.Orange, 6);
             }
+
+            // Render trace.
+            if (traceStart != null)
+                spriteBatch.FillRectangle(traceStart.RenderRect, Color.DarkViolet);
+
+            if (traceCur != null)
+                spriteBatch.FillRectangle(traceCur.RenderRect, Color.DarkViolet);
+
+            if (traceStart != null && traceCur != null)
+                spriteBatch.DrawLine(traceStart.RenderMid, traceCur.RenderMid, Color.Red, 3);
 
             // Render Mesh IDs for each cell.
             //for (int col = 0; col < Grid.Cols; col++)
@@ -236,10 +317,7 @@ namespace PathfindingProject
 
             foreach (NavMeshCell cell in navCells)
                 Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, cell.NavMeshID.ToString(), cell.RenderMid, Color.Black);
-
-            Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, "BLOCKED ON COLS: " + blockedOnCols.ToString(), new Vector2(300, 300), Color.White);
-            Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, "BLOCKED ON ROWS: " + blockedOnRows.ToString(), new Vector2(300, 320), Color.White);
-
+           
             Game1.Instance.spriteBatch.End();
             Game1.Instance.GraphicsDevice.Present();
 
@@ -249,15 +327,20 @@ namespace PathfindingProject
         public static bool DoNewCellsBlock(List<Cell> cells)
         {
             if (debug)
-                RenderNavMeshCalculation(startAt, curCell, blockedEast, blockedSouth, cells, frontier);
+                RenderNavMeshCalculation(startAt, curCell, blockedEast, blockedSouth, cells, frontier, null, null);
 
             if (cells.Count == 0)
                 return true;
             else
                 return cells.Find(cell => !cell.Passable || cell.MeshID != Cell.NOT_PART_OF_MESH) != null;
-        }       
+        }
+        
+        private static List<Cell> GetNextBorder(NavMeshCell curCell)
+        {
+            return GetNextEastCol(curCell).Concat(GetNextSouthRow(curCell)).Concat(GetNextWestCol(curCell)).Concat(GetNextNorthRow(curCell)).ToList();
+        }
 
-        private static List<Cell> GetNextEastCol()
+        private static List<Cell> GetNextEastCol(NavMeshCell curCell)
         {
             var result = new List<Cell>();
 
@@ -270,7 +353,7 @@ namespace PathfindingProject
             return result;
         }
 
-        private static List<Cell> GetNextWestCol()
+        private static List<Cell> GetNextWestCol(NavMeshCell curCell)
         {
             var result = new List<Cell>();
 
@@ -283,7 +366,7 @@ namespace PathfindingProject
             return result;
         }
 
-        private static List<Cell> GetNextSouthRow()
+        private static List<Cell> GetNextSouthRow(NavMeshCell curCell)
         {
             var result = new List<Cell>();
 
@@ -296,7 +379,7 @@ namespace PathfindingProject
             return result;
         }
 
-        private static List<Cell> GetNextNorthRow()
+        private static List<Cell> GetNextNorthRow(NavMeshCell curCell)
         {
             var result = new List<Cell>();
 

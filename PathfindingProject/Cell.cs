@@ -19,6 +19,7 @@ namespace PathfindingProject
         public int Height { get; set; }
 
         public uint MeshID = NOT_PART_OF_MESH;
+        public Vector2 flowVector = Vector2.Zero;
         
         public int Size
         {

@@ -13,6 +13,8 @@ namespace PathfindingProject
 
         public uint NavMeshID { get; set; }
 
+        public Dictionary<NavMeshCell, Vector2> Waypoints = new Dictionary<NavMeshCell, Vector2>();
+
         public static uint NextMeshID
         {
             get { return _nextMeshID++; }
@@ -34,7 +36,8 @@ namespace PathfindingProject
         }
 
         public NavMeshCell(Vector2 pos, int width, int height) : base(pos, width, height)
-        { 
+        {
+            Color = Color.Transparent;
         }
     }
 }
