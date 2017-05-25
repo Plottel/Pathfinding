@@ -113,6 +113,16 @@ namespace PathfindingProject
                 Exit();
 
             Input.UpdateStates();
+
+            if (Input.KeyTyped(Keys.D1))
+                world = new HierarchicalWorld();
+
+            if (Input.KeyTyped(Keys.D2))
+                world = new NavMeshWorld();
+
+            if (Input.KeyTyped(Keys.D3))
+                world = new FlowFieldWorld();
+
             world.HandleInput();
             world.Update();
 
@@ -131,6 +141,11 @@ namespace PathfindingProject
 
             // TODO: Add your drawing code here
             world.Render(spriteBatch);
+
+
+            spriteBatch.DrawString(smallFont, "1 - Hierarchical", new Vector2(10, 10), Color.White);
+            spriteBatch.DrawString(smallFont, "2 - Nav Mesh", new Vector2(10, 20), Color.White);
+            spriteBatch.DrawString(smallFont, "3 - Flow Field", new Vector2(10, 30), Color.White);
 
             spriteBatch.End();
 

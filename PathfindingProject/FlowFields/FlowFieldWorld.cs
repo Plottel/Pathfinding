@@ -16,6 +16,7 @@ namespace PathfindingProject
         public int Height { get; set; }
 
         public Grid Grid;
+        public Cell target;
 
         public FlowFieldWorld()
         {
@@ -26,7 +27,11 @@ namespace PathfindingProject
         public void HandleInput()
         {
             if (Input.KeyTyped(Keys.Space))
+            {
                 FlowFieldGenerator.GenerateFlowFieldTo(Grid, Input.MousePos);
+                target = Grid.CellAt(Input.MousePos);
+            }
+                
 
             if (Input.LeftMouseDown())
             {
@@ -70,18 +75,16 @@ namespace PathfindingProject
                 {
                     Cell c = Grid[col, row];
 
-                    if (c.Passable)
+                    if (c.Passable && c.flowVector != Vector2.Zero)
                     {
-                        if (c.flowVector != Vector2.Zero)
-                        {
-                            spriteBatch.DrawLine(c.RenderMid - (c.flowVector * 10), c.RenderMid + (c.flowVector * 10), Color.White, 3);
-                            spriteBatch.DrawPoint(c.RenderMid - (c.flowVector * 10), Color.Red, 5);
-                        }
-                        else
-                            spriteBatch.DrawPoint(c.RenderMid, Color.GreenYellow, 15);
+                        spriteBatch.DrawLine(c.RenderMid - (c.flowVector * 10), c.RenderMid + (c.flowVector * 10), Color.White, 3);
+                        spriteBatch.DrawPoint(c.RenderMid - (c.flowVector * 10), Color.Red, 5);
                     }                    
                 }
             }
+
+            if (target != null)
+                spriteBatch.DrawPoint(target.RenderMid, Color.LawnGreen, 20);
         }
     }
 }
