@@ -48,6 +48,7 @@
     <Compile Include="Cell.cs" />
     <Compile Include="FlowFields\FlowFieldGenerator.cs" />
     <Compile Include="FlowFields\FlowFieldWorld.cs" />
+    <Compile Include="GridIO.cs" />
     <Compile Include="Hierarchical\Connection.cs" />
     <Compile Include="Dir.cs" />
     <Compile Include="ExtensionMethods.cs" />

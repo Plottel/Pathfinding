@@ -12,6 +12,8 @@ namespace PathfindingProject
 {
     public class HierarchicalWorld : IWorld
     {
+        public const int OUTER_CELL_SIZE = 128;
+        public const int GRID_SCALE = 4;
 
         public int Width
         {
@@ -23,19 +25,50 @@ namespace PathfindingProject
             get; set;
         }
 
-        public HierarchicalGrid Grid;
+        public HierarchicalGrid HGrid;
+
+        private Grid _grid;
+
+        public Grid Grid
+        {
+            get { return _grid; }
+
+            set
+            {
+                _grid = value;
+                HGrid = new HierarchicalGrid(_grid.Pos, OUTER_CELL_SIZE, GRID_SCALE, _grid.Cols / GRID_SCALE, _grid.Rows / GRID_SCALE);
+
+                // Derive HierarchicalGrid from grid value.
+                for (int col = 0; col < _grid.Cols; col++)
+                {
+                    for (int row = 0; row < _grid.Rows; row++)
+                    {
+                        int outerCol = col / GRID_SCALE;
+                        int outerRow = row / GRID_SCALE;
+
+
+                        int innerCol = col % GRID_SCALE;
+                        int innerRow = row % GRID_SCALE;
+
+                        HGrid[outerCol, outerRow][innerCol, innerRow] = _grid[col, row];
+                    }
+                }
+
+            }
+        }
 
         public List<Cell> path = new List<Cell>();
         public Vector2 start = Vector2.Zero;
         public Vector2 finish = Vector2.Zero;
 
-        public HierarchicalWorld()
+        public HierarchicalWorld(Grid grid)
         {
-            Grid = new HierarchicalGrid(new Vector2(0, 0), 128 , 4, 11, 6);
-            Grid.ShowGrid = true;
+            Grid = grid;
+            //HGrid = new HierarchicalGrid(new Vector2(0, 0), 128 , 4, 11, 6);
+            HGrid.ShowGrid = true;
 
-            Width = Grid.Width;
-            Height = Grid.Height;
+            Width = HGrid.Width;
+            Height = HGrid.Height;
         }
 
         public void HandleInput()
@@ -43,18 +76,18 @@ namespace PathfindingProject
 
             if (Input.LeftMouseDown())
             {
-                Cell cell = Grid.InnerCellAt(Camera.VecToWorld(Input.MousePos));
+                Cell cell = HGrid.InnerCellAt(Camera.VecToWorld(Input.MousePos));
                 cell.Passable = false;
                 cell.Color = Color.Black;
-                Grid.UpdateGridConnectionsForNeighbours(Grid.OuterCellAt(Input.MousePos));
+                HGrid.UpdateGridConnectionsForNeighbours(HGrid.OuterCellAt(Input.MousePos));
             }
 
             if (Input.RightMouseDown())
             {
-                Cell cell = Grid.InnerCellAt(Camera.VecToWorld(Input.MousePos));
+                Cell cell = HGrid.InnerCellAt(Camera.VecToWorld(Input.MousePos));
                 cell.Passable = true;
                 cell.Color = Color.ForestGreen;
-                Grid.UpdateGridConnectionsForNeighbours(Grid.OuterCellAt(Input.MousePos));
+                HGrid.UpdateGridConnectionsForNeighbours(HGrid.OuterCellAt(Input.MousePos));
             }
 
             if (Input.KeyTyped(Keys.S))
@@ -65,10 +98,10 @@ namespace PathfindingProject
 
             if (Input.KeyTyped(Keys.Space))
             {
-                Connection from = Grid[0, 0].Connections[0];
-                Connection to = Grid[9, 4].Connections.Last();
+                Connection from = HGrid[0, 0].Connections[0];
+                Connection to = HGrid[9, 4].Connections.Last();
                 path = new List<Cell>(); // Clear so it doesn't render the path while calculating.
-                path = Grid.GetPathFromTo(start, finish);
+                path = HGrid.GetPathFromTo(start, finish);
             }
         }
 
@@ -77,7 +110,7 @@ namespace PathfindingProject
 
         public void Render(SpriteBatch spriteBatch)
         {
-            Grid.Render(spriteBatch);
+            HGrid.Render(spriteBatch);
             RenderPath(spriteBatch);
         }
 

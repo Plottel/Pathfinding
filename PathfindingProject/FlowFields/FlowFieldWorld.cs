@@ -15,13 +15,14 @@ namespace PathfindingProject
         public int Width { get; set; }
         public int Height { get; set; }
 
-        public Grid Grid;
+        public Grid Grid { get; set; }
         public Cell target;
 
-        public FlowFieldWorld()
+        public FlowFieldWorld(Grid grid)
         {
-            Grid = new Grid(new Vector2(0, 0), 44, 24, 32, true);
-            Grid.ShowGrid = false;
+            Grid = grid;
+            //Grid = new Grid(new Vector2(0, 0), 44, 24, 32, true);
+            //Grid.ShowGrid = false;
         }
 
         public void HandleInput()

@@ -14,8 +14,8 @@ namespace PathfindingProject
     public class NavMeshWorld : IWorld
     {
         private List<NavMeshCell> _navCells = new List<NavMeshCell>();
-        public Grid Grid;
-
+        public Grid Grid { get; set; }
+        public static Random bogo = new Random();
         public Vector2 start;
         public Vector2 finish;
         public List<Vector2> path = new List<Vector2>();
@@ -23,24 +23,9 @@ namespace PathfindingProject
         public int Width { get; set; }
         public int Height { get; set; }
 
-        public NavMeshWorld()
+        public NavMeshWorld(Grid grid)
         {
-            //Grid = new Grid(new Vector2(0, 0), 176, 96, 8);
-            Grid = new Grid(new Vector2(0, 0), 44, 24, 32, false);
-            Grid.ShowGrid = false;
-
-            Random rnd = new Random();
-            for (int col = 0; col < Grid.Cols; col++)
-            {
-                for (int row = 0; row < Grid.Rows; row++)
-                {
-                    if (rnd.NextSingle(0, 1) < 0.1)
-                    {
-                        Grid[col, row].Passable = false;
-                        Grid[col, row].Color = Color.Black;
-                    }
-                }
-            }
+            Grid = grid;
         }
 
         public void HandleInput()
@@ -171,7 +156,7 @@ namespace PathfindingProject
                         open.Add(cell);
                         parents.Add(cell, current);
                         scores.Add(cell, Vector2.Distance(current.Waypoints[cell], toPos));
-
+                        
                         if (cell == target)
                         {
                             searchComplete = true;

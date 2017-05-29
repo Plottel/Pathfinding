@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.IO;
+
 
 namespace PathfindingProject
 {
@@ -12,6 +14,7 @@ namespace PathfindingProject
     {
         private static Game1 _instance;
         public SpriteFont smallFont;
+        private Grid grid;
 
         public static Game1 Instance
         {
@@ -45,9 +48,11 @@ namespace PathfindingProject
             //        break;
             //}
 
+            grid = new Grid(new Vector2(0, 0), 44, 24, 32, true);
+
             //world = new HierarchicalWorld();
             //world = new NavMeshWorld();
-            world = new FlowFieldWorld();
+            world = new FlowFieldWorld(grid);
 
 
             if (_instance == null)
@@ -114,14 +119,29 @@ namespace PathfindingProject
 
             Input.UpdateStates();
 
+            if (Input.KeyTyped(Keys.P))
+            {
+                StreamWriter writer = new StreamWriter("../../../..//grids/grid.txt");
+                GridIO.SaveGridTo(writer, grid);
+                writer.Close();
+            }
+
+            if (Input.KeyTyped(Keys.L))
+            {
+                StreamReader reader = new StreamReader("../../../../grids/grid.txt");
+                grid = GridIO.LoadGridFrom(reader);
+                world.Grid = grid;
+                reader.Close();
+            }
+
             if (Input.KeyTyped(Keys.D1))
-                world = new HierarchicalWorld();
+                world = new HierarchicalWorld(grid);
 
             if (Input.KeyTyped(Keys.D2))
-                world = new NavMeshWorld();
+                world = new NavMeshWorld(grid);
 
             if (Input.KeyTyped(Keys.D3))
-                world = new FlowFieldWorld();
+                world = new FlowFieldWorld(grid);
 
             world.HandleInput();
             world.Update();
@@ -146,6 +166,7 @@ namespace PathfindingProject
             spriteBatch.DrawString(smallFont, "1 - Hierarchical", new Vector2(10, 10), Color.White);
             spriteBatch.DrawString(smallFont, "2 - Nav Mesh", new Vector2(10, 20), Color.White);
             spriteBatch.DrawString(smallFont, "3 - Flow Field", new Vector2(10, 30), Color.White);
+            spriteBatch.DrawString(smallFont, "CURRENT: " + world.GetType().Name, new Vector2(10, 40), Color.White);
 
             spriteBatch.End();
 

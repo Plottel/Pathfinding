@@ -13,6 +13,7 @@ namespace PathfindingProject
         void Update();
         void Render(SpriteBatch spriteBatch);
 
+        Grid Grid { get; set; }
         int Width { get; }
         int Height { get; }
     }

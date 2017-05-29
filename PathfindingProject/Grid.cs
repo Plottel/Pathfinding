@@ -14,6 +14,12 @@ namespace PathfindingProject
     public class Grid
     {
         private int _cellSize;
+        private bool _includeDiagonals;
+
+        public bool IncludeDiagonals
+        {
+            get { return _includeDiagonals; }
+        }
 
         public int CellSize
         {
@@ -158,6 +164,7 @@ namespace PathfindingProject
             AddColumns(cols);
             AddRows(rows);
             ShowGrid = true;
+            _includeDiagonals = includeDiagonals;
 
             SetupCellNeighbours(includeDiagonals);
         }
