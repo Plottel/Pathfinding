@@ -15,6 +15,10 @@ namespace PathfindingProject
         public const int OUTER_CELL_SIZE = 128;
         public const int GRID_SCALE = 4;
 
+        public List<Cell> path = new List<Cell>();
+        public Vector2 start = Vector2.Zero;
+        public Vector2 finish = Vector2.Zero;
+
         public int Width
         {
             get; set;
@@ -46,20 +50,34 @@ namespace PathfindingProject
                         int outerCol = col / GRID_SCALE;
                         int outerRow = row / GRID_SCALE;
 
-
                         int innerCol = col % GRID_SCALE;
                         int innerRow = row % GRID_SCALE;
 
-                        HGrid[outerCol, outerRow][innerCol, innerRow] = _grid[col, row];
+                        Cell c = HGrid[outerCol, outerRow][innerCol, innerRow];
+                        c.Passable = _grid[col, row].Passable;
+
+                        if (c.Passable)
+                            c.Color = Color.ForestGreen;
+                        else
+                            c.Color = Color.Black;
                     }
                 }
 
+                // Setup cell neighbours to restrict neighbouring to each OuterGridCell.
+                for (int col = 0; col < HGrid.Cols; col++)
+                {
+                    for (int row = 0; row < HGrid.Rows; row++)
+                    {
+                        HGrid[col, row].SetupCellNeighbours(false);
+                    }
+                }
+
+                HGrid.SetupNeighbours();
+                HGrid.CalculateWholeGridConnections();
             }
         }
 
-        public List<Cell> path = new List<Cell>();
-        public Vector2 start = Vector2.Zero;
-        public Vector2 finish = Vector2.Zero;
+
 
         public HierarchicalWorld(Grid grid)
         {
@@ -91,15 +109,13 @@ namespace PathfindingProject
             }
 
             if (Input.KeyTyped(Keys.S))
-                start = Input.MousePos;
+                start = Camera.VecToWorld(Input.MousePos);
 
             if (Input.KeyTyped(Keys.F))
-                finish = Input.MousePos;
+                finish = Camera.VecToWorld(Input.MousePos);
 
-            if (Input.KeyTyped(Keys.Space))
+            if (Input.KeyTyped(Keys.G))
             {
-                Connection from = HGrid[0, 0].Connections[0];
-                Connection to = HGrid[9, 4].Connections.Last();
                 path = new List<Cell>(); // Clear so it doesn't render the path while calculating.
                 path = HGrid.GetPathFromTo(start, finish);
             }
@@ -112,6 +128,11 @@ namespace PathfindingProject
         {
             HGrid.Render(spriteBatch);
             RenderPath(spriteBatch);
+
+            if (start != Vector2.Zero)
+                spriteBatch.DrawPoint(Camera.VecToScreen(start), Color.Green, 20);
+            if (finish != Vector2.Zero)
+                spriteBatch.DrawPoint(Camera.VecToScreen(finish), Color.Red, 20);
         }
 
         public void RenderPath(SpriteBatch spriteBatch)

@@ -96,6 +96,7 @@ namespace PathfindingProject
                 searchComplete = open.Count == 0;
             }
 
+
             return reachableEdgeCells;
         }
 
@@ -141,13 +142,13 @@ namespace PathfindingProject
             foreach (Connection c in Connections)
             {
                 // Render actual bridge connections.
-                //spriteBatch.DrawLine(c.InnerFrom.RenderMid, c.InnerTo.RenderMid, Color.Blue, 3);
+                spriteBatch.DrawLine(c.InnerFrom.RenderMid, c.InnerTo.RenderMid, Color.Blue, 3);
 
                 // Render high-level OuterGridCell connections.
-                //spriteBatch.DrawLine(c.OuterFrom.RenderMid, c.OuterTo.RenderMid, Color.Orange, 4);
+                spriteBatch.DrawLine(c.OuterFrom.RenderMid, c.OuterTo.RenderMid, Color.Orange, 4);
 
                 // Render lines between all connected connections.
-                //c.Render(spriteBatch);
+                c.Render(spriteBatch);
             }
         }
     }

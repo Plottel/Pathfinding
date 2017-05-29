@@ -67,8 +67,7 @@ namespace PathfindingProject
 
                 foreach (Cell c in GetNextBorder(navCell))
                 {
-                    if (debug)
-                        RenderNavMeshCalculation(startAt, curCell, false, false, new List<Cell>(), frontier, traceStart, traceCur);
+                    RenderNavMeshCalculation(startAt, curCell, false, false, new List<Cell>(), frontier, traceStart, traceCur);
 
                     // Add surrounding NavMeshCell to curCell neighbours
                     if (c.MeshID != Cell.NOT_PART_OF_MESH && !navCell.HasNeighbour(c.MeshID))
@@ -120,7 +119,6 @@ namespace PathfindingProject
             blockedSouth = false;
             blockedWest = false;
             blockedNorth = false;
-            debug = true;
 
             navCells = new List<NavMeshCell>();
             curCell = new NavMeshCell(Grid[startAt].Pos, Grid.CellSize, Grid.CellSize);
@@ -258,6 +256,9 @@ namespace PathfindingProject
                                                 Cell traceStart, 
                                                 Cell traceCur)
         {
+            if (!Debug.IsOn(DebugOp.CalcNavMesh))
+                return;
+
             SpriteBatch spriteBatch = Game1.Instance.spriteBatch;
 
 
@@ -303,17 +304,6 @@ namespace PathfindingProject
 
             if (traceStart != null && traceCur != null)
                 spriteBatch.DrawLine(traceStart.RenderMid, traceCur.RenderMid, Color.Red, 3);
-
-            // Render Mesh IDs for each cell.
-            //for (int col = 0; col < Grid.Cols; col++)
-            //{
-            //    for (int row = 0; row < Grid.Rows; row++)
-            //    {
-            //        Cell c = Grid[col, row];
-
-            //        Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, c.MeshID.ToString(), c.RenderMid, Color.Black);
-            //    }
-            //}
 
             foreach (NavMeshCell cell in navCells)
                 Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, cell.NavMeshID.ToString(), cell.RenderMid, Color.Black);

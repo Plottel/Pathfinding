@@ -15,14 +15,23 @@ namespace PathfindingProject
         public int Width { get; set; }
         public int Height { get; set; }
 
-        public Grid Grid { get; set; }
         public Cell target;
+
+        private Grid _grid;
+
+        public Grid Grid
+        {
+            get { return _grid; }
+            set
+            {
+                _grid = value;
+                _grid.SetupCellNeighbours(true);
+            }
+        }
 
         public FlowFieldWorld(Grid grid)
         {
             Grid = grid;
-            //Grid = new Grid(new Vector2(0, 0), 44, 24, 32, true);
-            //Grid.ShowGrid = false;
         }
 
         public void HandleInput()
@@ -76,7 +85,7 @@ namespace PathfindingProject
                 {
                     Cell c = Grid[col, row];
 
-                    if (c.Passable && c.flowVector != Vector2.Zero)
+                    if (c.Passable && c.flowVector != Vector2.Zero && Debug.IsOn(DebugOp.ShowUniqueGrid))
                     {
                         spriteBatch.DrawLine(c.RenderMid - (c.flowVector * 10), c.RenderMid + (c.flowVector * 10), Color.White, 3);
                         spriteBatch.DrawPoint(c.RenderMid - (c.flowVector * 10), Color.Red, 5);

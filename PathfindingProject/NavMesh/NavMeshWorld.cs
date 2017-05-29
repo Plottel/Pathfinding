@@ -14,7 +14,6 @@ namespace PathfindingProject
     public class NavMeshWorld : IWorld
     {
         private List<NavMeshCell> _navCells = new List<NavMeshCell>();
-        public Grid Grid { get; set; }
         public static Random bogo = new Random();
         public Vector2 start;
         public Vector2 finish;
@@ -22,6 +21,18 @@ namespace PathfindingProject
 
         public int Width { get; set; }
         public int Height { get; set; }
+
+        private Grid _grid;
+
+        public Grid Grid
+        {
+            get { return _grid; }
+            set
+            {
+                _grid = value;
+                _grid.SetupCellNeighbours(false);
+            }
+        }
 
         public NavMeshWorld(Grid grid)
         {
@@ -56,16 +67,12 @@ namespace PathfindingProject
                 {
                     cell.Passable = false;
                     cell.Color = Color.Black;
-                    //_navCells = new List<NavMeshCell>();
-                    //_navCells = NavMeshGenerator.CalculateNavMeshCells(Grid);
                 }
 
                 if (Input.RightMouseDown())
                 {
                     cell.Passable = true;
                     cell.Color = Color.ForestGreen;
-                    //_navCells = new List<NavMeshCell>();
-                    //_navCells = NavMeshGenerator.CalculateNavMeshCells(Grid);
                 }
             }
             
@@ -84,8 +91,6 @@ namespace PathfindingProject
             if (source == target)
                 return new List<Vector2> { toPos };
 
-            bool debug = true;
-
             open.Add(current);
 
             parents.Add(current, null);
@@ -95,7 +100,7 @@ namespace PathfindingProject
 
             while (!searchComplete)
             {
-                if (debug)
+                if (Debug.IsOn(DebugOp.CalcPath))
                 {
                     #region Calculate Path Visual
                     Input.UpdateStates();
@@ -202,20 +207,11 @@ namespace PathfindingProject
         {
             Grid.Render(spriteBatch);
 
-            foreach (NavMeshCell c in _navCells)
-                spriteBatch.DrawRectangle(c.RenderRect, Color.DarkBlue, 2);
-
-            // Render neighbours white
-            //foreach (NavMeshCell navCell in _navCells)
-            //{
-            //    foreach (Vector2 pos in navCell.Waypoints.Values)
-            //        Game1.Instance.spriteBatch.DrawLine(navCell.RenderMid, pos, Color.White, 1);
-
-            //    Game1.Instance.spriteBatch.DrawPoint(navCell.RenderMid, Color.Orange, 6);
-            //}
-
-            //foreach (NavMeshCell cell in _navCells)
-            //    Game1.Instance.spriteBatch.DrawString(Game1.Instance.smallFont, cell.NavMeshID.ToString(), cell.RenderMid, Color.Black);
+            if (Debug.IsOn(DebugOp.ShowUniqueGrid))
+            {
+                foreach (NavMeshCell c in _navCells)
+                    spriteBatch.DrawRectangle(c.RenderRect, Color.DarkBlue, 2);
+            }
 
             RenderPath(spriteBatch, path);
 

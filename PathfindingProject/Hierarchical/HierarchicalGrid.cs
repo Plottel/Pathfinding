@@ -119,7 +119,7 @@ namespace PathfindingProject
             return OuterCellAt(pos).CellAt(pos);
         }
 
-        private void SetupNeighbours()
+        public void SetupNeighbours()
         {
             for (int col = 0; col < Cols; col++)
             {
@@ -268,11 +268,9 @@ namespace PathfindingProject
 
             bool searchComplete = false;
 
-            bool debug = true;
-
             while (!searchComplete)
             {
-                if (debug)
+                if (Debug.IsOn(DebugOp.CalcPath))
                 {
                     #region Calculate Path Visual
                     Input.UpdateStates();
@@ -387,19 +385,23 @@ namespace PathfindingProject
                 {
                     this[col, row].Render(spriteBatch);
 
-                    if (ShowGrid)
+                    if (Debug.IsOn(DebugOp.ShowGrid))
                         spriteBatch.DrawRectangle(this[col, row].RenderRect, Color.DarkSlateGray, 5);
                 }
             }
 
-            // Render connections
-            for (int col = 0; col < Cols; col++)
+            if (Debug.IsOn(DebugOp.ShowUniqueGrid))
             {
-                for (int row = 0; row < Rows; row++)
+                // Render connections
+                for (int col = 0; col < Cols; col++)
                 {
-                    _cells[col][row].RenderConnections(spriteBatch);                    
+                    for (int row = 0; row < Rows; row++)
+                    {
+                        _cells[col][row].RenderConnections(spriteBatch);
+                    }
                 }
             }
+            
         }
     }
 }

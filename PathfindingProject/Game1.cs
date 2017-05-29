@@ -69,6 +69,8 @@ namespace PathfindingProject
             Input.SetMaxMouseX(graphics.PreferredBackBufferWidth);
             Input.SetMaxMouseY(graphics.PreferredBackBufferHeight);
 
+            Debug.Init();
+
 
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
@@ -118,6 +120,7 @@ namespace PathfindingProject
                 Exit();
 
             Input.UpdateStates();
+            Debug.HandleInput();
 
             if (Input.KeyTyped(Keys.P))
             {
@@ -134,13 +137,13 @@ namespace PathfindingProject
                 reader.Close();
             }
 
-            if (Input.KeyTyped(Keys.D1))
+            if (Input.KeyTyped(Keys.D7))
                 world = new HierarchicalWorld(grid);
 
-            if (Input.KeyTyped(Keys.D2))
+            if (Input.KeyTyped(Keys.D8))
                 world = new NavMeshWorld(grid);
 
-            if (Input.KeyTyped(Keys.D3))
+            if (Input.KeyTyped(Keys.D9))
                 world = new FlowFieldWorld(grid);
 
             world.HandleInput();
@@ -163,10 +166,14 @@ namespace PathfindingProject
             world.Render(spriteBatch);
 
 
-            spriteBatch.DrawString(smallFont, "1 - Hierarchical", new Vector2(10, 10), Color.White);
-            spriteBatch.DrawString(smallFont, "2 - Nav Mesh", new Vector2(10, 20), Color.White);
-            spriteBatch.DrawString(smallFont, "3 - Flow Field", new Vector2(10, 30), Color.White);
+            spriteBatch.DrawString(smallFont, "7 - Hierarchical", new Vector2(10, 10), Color.White);
+            spriteBatch.DrawString(smallFont, "8 - Nav Mesh", new Vector2(10, 20), Color.White);
+            spriteBatch.DrawString(smallFont, "9 - Flow Field", new Vector2(10, 30), Color.White);
             spriteBatch.DrawString(smallFont, "CURRENT: " + world.GetType().Name, new Vector2(10, 40), Color.White);
+
+            Debug.RenderDebugOptionStates(spriteBatch);
+            Debug.RenderHookedText(spriteBatch);
+            Debug.ClearHookedText();
 
             spriteBatch.End();
 

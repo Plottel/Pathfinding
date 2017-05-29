@@ -169,7 +169,7 @@ namespace PathfindingProject
             SetupCellNeighbours(includeDiagonals);
         }
 
-        private void SetupCellNeighbours(bool includeDiagonals)
+        public void SetupCellNeighbours(bool includeDiagonals)
         {
             for (int col = 0; col < Cols; col++)
             {
@@ -488,7 +488,7 @@ namespace PathfindingProject
                     cell.Render(spriteBatch);
 
                     // TODO: Separate loop, should only need to check ShowGrid once.
-                    if (ShowGrid)
+                    if (Debug.IsOn(DebugOp.ShowGrid))
                         spriteBatch.DrawRectangle(cell.RenderRect, Color.Black, 1);
                 }
             }          
